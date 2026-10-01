@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FARACOM TOOL (의류) - 만능 비주얼 매핑 수집</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Top Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo-box">
+          <span class="logo-text">FT</span>
+        </div>
+        <div class="brand-info">
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <h1 class="brand-title">FARACOM TOOL (의류)</h1>
+            <span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.4);">v1.3.6</span>
+          </div>
+          <span id="currentDomainBadge" class="domain-badge" title="현재 활성 웹사이트">🌐 연결 중...</span>
+        </div>
+      </div>
+      <div id="statusBadge" class="status-badge status-checking">
+        <span class="status-dot"></span>
+        <span id="statusText" class="status-label">확인 중</span>
+      </div>
+    </header>
+
+    <!-- 1. [맨 위] 수집 결과 출력 영역 -->
+    <section class="result-top-section" id="resultTopSection">
+      <!-- State A: 대기 중 -->
+      <div id="idleState" class="result-card idle-card">
+        <div class="result-card-header">
+          <span class="result-title">📋 수집 결과</span>
+          <span class="result-status-pill">대기 중</span>
+        </div>
+        <p class="idle-message">아래 <b>[수집 실행]</b>을 누르면 시퀀스 순서대로 페이지 요소를 1:1 수집합니다.</p>
+      </div>
+
+      <!-- State B: 수집 진행 중 -->
+      <div id="loadingState" class="result-card loading-card hidden">
+        <div class="spinner-small"></div>
+        <div class="loading-msg-wrap">
+          <span class="loading-title">시퀀스 순서대로 페이지 수집 중...</span>
+          <span class="loading-sub" id="loadingProgress">클릭 동작 및 매핑 영역 추출</span>
+        </div>
+      </div>
+
+      <!-- State C: 수집 완료 카드 -->
+      <div id="resultState" class="result-card active-card hidden">
+        <div class="result-card-header">
+          <span class="result-title">✨ 수집 완료</span>
+          <div class="result-header-actions">
+            <span id="imgCountBadge" class="result-count-pill">0장 수집됨</span>
+            <button id="clearScrapedBtn" class="clear-pill-btn" type="button" title="수집 결과 제거 및 초기화">✕ 초기화</button>
+          </div>
+        </div>
+
+        <div class="product-summary-row">
+          <div class="product-thumb-wrap">
+            <img id="mainThumbnail" src="" alt="상품 썸네일" class="product-thumb" referrerpolicy="no-referrer" />
+          </div>
+          <div class="product-details">
+            <h2 id="productTitle" class="product-title" title="수집된 타이틀">수집 타이틀</h2>
+            <div class="product-meta">
+              <span id="brandName" class="brand-name">도메인</span>
+              <span class="meta-dot">·</span>
+              <span id="sectionCountText" class="sections-count-pill">매핑 영역 0개</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Horizontal Image Gallery -->
+        <div id="imagesContainer" class="images-scroll-container"></div>
+
+        <!-- Mapped Text Preview Box -->
+        <div class="mapped-text-box">
+          <div class="mapped-text-header">
+            <span>📝 수집된 본문 & 표 내용 미리보기</span>
+          </div>
+          <pre id="mappedTextPreview" class="mapped-text-content"></pre>
+        </div>
+
+        <!-- FARACOM Transfer Button -->
+        <button id="sendToFaracomBtn" class="transfer-btn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          <span id="sendBtnLabel">FARACOM 전송 (즉시 반영)</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. [수집 실행 버튼] -->
+    <div class="run-section">
+      <button id="runSequenceBtn" class="primary-btn run-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span id="runBtnText">수집 실행</span>
+      </button>
+    </div>
+
+    <!-- 3. [하단 바] 상태 표시 및 하단 우측 톱니바퀴 설정 아이콘 -->
+    <div class="bottom-control-bar">
+      <div class="recipe-status-info">
+        <span id="cloudSyncIndicator" class="cloud-pill" title="공용 DB 연동 상태">☁️ 공용DB 동기화</span>
+        <span id="activeStepCount" class="step-summary-pill">0개 단계</span>
+      </div>
+      <div class="bottom-btns-group">
+        <button id="toggleSettingsBtn" class="gear-toggle-btn" title="매핑 관리자 설정 열기/닫기">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span class="gear-label">설정</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. [설정 드로어] 톱니바퀴를 눌러야만 열리는 매핑 관리자 모드 -->
+    <div id="mappingDrawer" class="mapping-drawer hidden">
+      <div class="drawer-header">
+        <div class="drawer-title-wrap">
+          <span class="drawer-title">⚙️ 매핑 규칙 관리 (관리자 모드)</span>
+        </div>
+        <div class="drawer-header-actions">
+          <button id="drawerSyncToggleBtn" class="sync-switch-btn in-drawer" type="button" title="클릭하여 공용 DB 자동 동기화 켜기/끄기">
+            <span id="drawerSyncDot" class="sync-status-dot on"></span>
+            <span id="drawerSyncText">동기화 ON</span>
+          </button>
+          <button id="closeDrawerBtn" class="drawer-close-btn" title="설정 닫기">✕</button>
+        </div>
+      </div>
+
+      <!-- 매핑 버튼들 (3단 메뉴: 클릭 추가, 매핑 추가, 자동스크롤 추가) -->
+      <div class="macro-picker-bar">
+        <div class="macro-btn-col">
+          <button id="addClickStepBtn" class="macro-action-btn click-mode-btn" title="웹페이지에서 클릭할 버튼/탭을 마우스로 지정">
+            <span class="macro-btn-icon">👆</span>
+            <div class="macro-btn-text">
+              <span class="macro-btn-main">클릭 추가</span>
+              <span class="macro-btn-sub">탭·더보기</span>
+            </div>
+          </button>
+        </div>
+        <div class="macro-btn-col">
+          <button id="addMapStepBtn" class="macro-action-btn map-mode-btn" title="클릭한 영역의 글/표/사진을 그대로 1:1 수집">
+            <span class="macro-btn-icon">🎯</span>
+            <div class="macro-btn-text">
+              <span class="macro-btn-main">매핑 추가</span>
+              <span class="macro-btn-sub">글·표·사진</span>
+            </div>
+          </button>
+        </div>
+        <div class="macro-btn-col">
+          <button id="addScrollStepBtn" class="macro-action-btn scroll-mode-btn" title="페이지 맨 밑까지 스크롤하여 상세페이지 이미지 및 동적 컨텐츠를 로드한 뒤 해당 위치에서 매핑을 진행합니다">
+            <span class="macro-btn-icon">📜</span>
+            <div class="macro-btn-text">
+              <span class="macro-btn-main">자동스크롤 추가</span>
+              <span class="macro-btn-sub">맨 밑으로 이동</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- 시퀀스 목록 -->
+      <section class="sequence-card">
+        <div class="sequence-header">
+          <div class="sequence-title-wrap">
+            <span class="sequence-title">현재 사이트 시퀀스</span>
+            <span id="stepCountText" class="sequence-badge">0단계</span>
+          </div>
+          <button id="loadPresetBtn" class="link-btn" title="기본 추천 시퀀스 불러오기">추천 예시</button>
+        </div>
+
+        <div id="sequenceList" class="sequence-list"></div>
+
+        <div id="emptySequenceHint" class="empty-sequence-hint hidden">
+          <p class="empty-hint-title">등록된 단계가 없습니다</p>
+          <p class="empty-hint-desc">위의 <b>[👆 클릭 추가]</b> 또는 <b>[🎯 매핑 추가]</b>로 순서대로 지정해 주세요.</p>
+        </div>
+
+        <div class="macro-sub-actions">
+          <button id="clearSequenceBtn" class="ghost-btn danger-text">전체 비우기</button>
+          <div class="db-action-group">
+            <button id="fetchCloudBtn" class="ghost-btn" title="공용 DB에서 최신 규칙 불러오기">DB 불러오기 🔄</button>
+            <button id="saveCloudBtn" class="cloud-save-btn" title="이 사이트 규칙을 공용 DB에 저장하여 모든 사용자가 공유">공용 DB 저장 ☁️</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Toast Notification (최상단 플로팅) -->
+    <div id="actionToast" class="action-toast hidden">
+      <span id="toastText">알림</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

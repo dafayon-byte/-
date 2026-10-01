@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "Prompt": {
+      "title": "Prompt",
+      "description": "Active system instruction prompt",
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["content"]
+    },
+    "PromptHistory": {
+      "title": "PromptHistory",
+      "description": "Historical system instruction prompts",
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["content", "createdAt"]
+    },
+    "AnalysisHistory": {
+      "title": "AnalysisHistory",
+      "description": "Historical clothing product analysis results",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "inputText": {
+          "type": "string"
+        },
+        "imageCount": {
+          "type": "number"
+        },
+        "result": {
+          "type": "object"
+        },
+        "duration": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["title", "result", "createdAt"]
+    },
+    "SizeChartDisclaimer": {
+      "title": "SizeChartDisclaimer",
+      "description": "Size chart bottom disclaimer and store branding text",
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["content"]
+    },
+    "WatermarkSettings": {
+      "title": "WatermarkSettings",
+      "description": "Size chart watermark settings including text, opacity, size, gaps and direction",
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "text": { "type": "string" },
+        "opacity": { "type": "number" },
+        "fontSize": { "type": "number" },
+        "gapX": { "type": "number" },
+        "gapY": { "type": "number" },
+        "angle": { "type": "number" },
+        "direction": { "type": "string" },
+        "color": { "type": "string" },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["enabled", "text", "opacity", "fontSize", "gapX", "gapY", "direction", "color"]
+    }
+  },
+  "firestore": {
+    "/prompts/{promptId}": {
+      "schema": "Prompt",
+      "description": "Active system prompt configuration"
+    },
+    "/prompt_history/{historyId}": {
+      "schema": "PromptHistory",
+      "description": "Prompt history records"
+    },
+    "/analysis_history/{analysisId}": {
+      "schema": "AnalysisHistory",
+      "description": "Analysis result history records"
+    },
+    "/settings/{settingId}": {
+      "description": "Application settings including size chart disclaimer and watermark settings"
+    }
+  }
+}

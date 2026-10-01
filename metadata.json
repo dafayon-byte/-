@@ -1,0 +1,8 @@
+{
+  "name": "text imege to ai",
+  "description": "의류상품분석하여 상품정보 및 사이즈표생성",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

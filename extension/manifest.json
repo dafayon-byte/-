@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "FARACOM TOOL (의류)",
+  "short_name": "FARACOM TOOL (의류)",
+  "version": "1.3.6",
+  "description": "원하는 모든 쇼핑몰(조조타운, 라쿠텐, 야후 등)의 텍스트와 사진을 1:1 비주얼 매핑하여 팀 공용 DB 공유 및 FARACOM AI 스튜디오로 초고속 전송합니다.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "FARACOM TOOL (의류)"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": ["app-content.js"],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ]
+}
